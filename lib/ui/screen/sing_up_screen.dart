@@ -1,18 +1,16 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:task_manager/ui/screen/forgot_password_email.dart';
-import 'package:task_manager/ui/screen/sing_up_screen.dart';
 import 'package:task_manager/ui/utils/appcolors.dart';
 import 'package:task_manager/ui/widgets/screen_background.dart';
 
-class SingInScreen extends StatefulWidget {
-  const SingInScreen({super.key});
+class SingUpScreen extends StatefulWidget {
+  const SingUpScreen({super.key});
 
   @override
-  State<SingInScreen> createState() => _SingInScreenState();
+  State<SingUpScreen> createState() => _SingUpScreenState();
 }
 
-class _SingInScreenState extends State<SingInScreen> {
+class _SingUpScreenState extends State<SingUpScreen> {
   @override
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
@@ -29,7 +27,7 @@ class _SingInScreenState extends State<SingInScreen> {
                   height: 80,
                 ),
                 Text(
-                  "Get Started With",
+                  "Join With Us",
                   style: textTheme.displaySmall
                       ?.copyWith(fontWeight: FontWeight.w600),
                 ),
@@ -41,19 +39,7 @@ class _SingInScreenState extends State<SingInScreen> {
                   height: 24,
                 ),
                 Center(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      TextButton(
-                        onPressed: _onTabForgotPasswordButton,
-                        child: Text(
-                          "Forgot Password?",
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ),
-                      _buildSignUpSection(),
-                    ],
-                  ),
+                  child: _buildSignInSection(),
                 )
               ],
             ),
@@ -69,6 +55,31 @@ class _SingInScreenState extends State<SingInScreen> {
         TextFormField(
           keyboardType: TextInputType.emailAddress,
           decoration: InputDecoration(hintText: "Email"),
+        ),
+        const SizedBox(
+          height: 10,
+        ),
+        TextFormField(
+          decoration: InputDecoration(
+            hintText: "First Name",
+          ),
+        ),
+        const SizedBox(
+          height: 10,
+        ),
+        TextFormField(
+          decoration: InputDecoration(
+            hintText: "Last Name",
+          ),
+        ),
+        const SizedBox(
+          height: 10,
+        ),
+        TextFormField(
+          keyboardType: TextInputType.phone,
+          decoration: InputDecoration(
+            hintText: "Mobile",
+          ),
         ),
         const SizedBox(
           height: 10,
@@ -93,10 +104,10 @@ class _SingInScreenState extends State<SingInScreen> {
     );
   }
 
-  Widget _buildSignUpSection() {
+  Widget _buildSignInSection() {
     return RichText(
       text: TextSpan(
-        text: "Don't have an account?",
+        text: "Have an account?",
         style: TextStyle(
             fontSize: 14,
             color: Colors.black,
@@ -104,19 +115,10 @@ class _SingInScreenState extends State<SingInScreen> {
             letterSpacing: 0.5),
         children: [
           TextSpan(
-              text: "Sign Up",
+              text: "Sign In",
               style: TextStyle(color: AppColor.ThemeColor),
-              recognizer: TapGestureRecognizer()..onTap = _onTapSignUp),
+              recognizer: TapGestureRecognizer()..onTap = _onTapSignIn),
         ],
-      ),
-    );
-  }
-
-  void _onTabForgotPasswordButton() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ForgotPasswordEmailScreen(),
       ),
     );
   }
@@ -125,12 +127,7 @@ class _SingInScreenState extends State<SingInScreen> {
     //ToDo: implement on tab next screen button
   }
 
-  void _onTapSignUp() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SingUpScreen(),
-      ),
-    );
+  void _onTapSignIn() {
+    Navigator.pop(context);
   }
 }

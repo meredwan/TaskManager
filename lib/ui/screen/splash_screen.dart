@@ -4,15 +4,22 @@ import 'package:task_manager/ui/screen/sing_in_screen.dart';
 import 'package:task_manager/ui/widgets/screen_background.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+
+  @override
+  void initState() {
+    super.initState();
+    _MoveToNextScreen();
+  }
+
   Future<void> _MoveToNextScreen() async {
-    await Future.delayed(const Duration(seconds: 3));
+    await Future.delayed(const Duration(seconds:2 ));
     Navigator.pushReplacement(
         context,
         MaterialPageRoute(

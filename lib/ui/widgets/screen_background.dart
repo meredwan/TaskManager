@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:task_manager/ui/utils/assets_path.dart';
@@ -16,7 +17,7 @@ class Screen_BG extends StatelessWidget {
         height: ScreenSize.height,
         width: ScreenSize.width,
       ),
-      child
+      SafeArea(child: child)
     ]);
   }
 }
