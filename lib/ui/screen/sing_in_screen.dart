@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:task_manager/ui/screen/forgot_password_email.dart';
+import 'package:task_manager/ui/screen/main_bottom_nav_screen.dart';
 import 'package:task_manager/ui/screen/sing_up_screen.dart';
 import 'package:task_manager/ui/utils/appcolors.dart';
 import 'package:task_manager/ui/widgets/screen_background.dart';
@@ -122,7 +123,12 @@ class _SingInScreenState extends State<SingInScreen> {
   }
 
   void _onTabNextButton() {
-    //ToDo: implement on tab next screen button
+    Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MainBottomNavScreen(),
+        ),
+        (route) => false);
   }
 
   void _onTapSignUp() {
