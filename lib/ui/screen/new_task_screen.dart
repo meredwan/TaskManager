@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:task_manager/ui/screen/add_new_task_screen.dart';
 import 'package:task_manager/ui/utils/appcolors.dart';
+import 'package:task_manager/ui/widgets/task_card.dart';
 import 'package:task_manager/ui/widgets/task_summary_screen.dart';
 
 class NewTaskScreen extends StatefulWidget {
@@ -24,22 +25,50 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-              TaskSummaryCard(Title: 'Canceled',Count: 09,),
-              TaskSummaryCard(Title: 'Completed',Count: 09,),
-              TaskSummaryCard(Title: 'Progress',Count: 09,),
-              TaskSummaryCard(Title: 'New Task',Count: 09,),
-                ],
-              ),
-            ),
+          _buildSummerySection(),
+          Expanded(
+            child: ListView.separated(
+                itemBuilder: (context, index) {
+                  return TaskCard();
+                },
+                separatorBuilder: (context, index) {
+                  return const SizedBox(
+                    height: 15,
+                  );
+                },
+                itemCount: 10),
           )
         ],
-      )
+      ),
+    );
+  }
+
+  Widget _buildSummerySection() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            TaskSummaryCard(
+              Title: 'Canceled',
+              Count: 09,
+            ),
+            TaskSummaryCard(
+              Title: 'Completed',
+              Count: 09,
+            ),
+            TaskSummaryCard(
+              Title: 'Progress',
+              Count: 09,
+            ),
+            TaskSummaryCard(
+              Title: 'New Task',
+              Count: 09,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -51,4 +80,3 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
         ));
   }
 }
-
