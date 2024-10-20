@@ -1,10 +1,15 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:task_manager/data/auth/auth_controller.dart';
+import 'package:task_manager/data/models/network_response.dart';
+import 'package:task_manager/data/services/network_caller.dart';
 import 'package:task_manager/ui/screen/forgot_password_email.dart';
 import 'package:task_manager/ui/screen/main_bottom_nav_screen.dart';
 import 'package:task_manager/ui/screen/sing_up_screen.dart';
 import 'package:task_manager/ui/utils/appcolors.dart';
+import 'package:task_manager/ui/utils/urls.dart';
 import 'package:task_manager/ui/widgets/screen_background.dart';
+import 'package:task_manager/ui/widgets/snackbar_massage.dart';
 
 class SingInScreen extends StatefulWidget {
   const SingInScreen({super.key});
@@ -14,6 +19,11 @@ class SingInScreen extends StatefulWidget {
 }
 
 class _SingInScreenState extends State<SingInScreen> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _emailTEController = TextEditingController();
+  final TextEditingController _passwordTEController = TextEditingController();
+  bool _inProgress = false;
+
   @override
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
@@ -65,32 +75,59 @@ class _SingInScreenState extends State<SingInScreen> {
   }
 
   Widget _buildSingInFrom() {
-    return Column(
-      children: [
-        TextFormField(
-          keyboardType: TextInputType.emailAddress,
-          decoration: InputDecoration(hintText: "Email"),
-        ),
-        const SizedBox(
-          height: 10,
-        ),
-        TextFormField(
-          obscureText: true,
-          decoration: InputDecoration(
-            hintText: "Password",
+    return Form(
+      key: _formKey,
+      child: Column(
+        children: [
+          TextFormField(
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            validator: (String? value) {
+              if (value?.isEmpty ?? true) {
+                return "Enter Valid Email";
+              }
+              return null;
+            },
+            controller: _emailTEController,
+            keyboardType: TextInputType.emailAddress,
+            decoration: InputDecoration(hintText: "Email"),
           ),
-        ),
-        const SizedBox(
-          height: 24,
-        ),
-        ElevatedButton(
-          onPressed: _onTabNextButton,
-          child: Icon(
-            Icons.arrow_circle_right_outlined,
-            size: 30,
+          const SizedBox(
+            height: 10,
           ),
-        ),
-      ],
+          TextFormField(
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            validator: (String? Value) {
+              if (Value?.isEmpty ?? true) {
+                return "Enter your Password";
+              }
+              if (Value!.length <= 6) {
+                return "Enter a Password more than 6 Character";
+              }
+            },
+            controller: _passwordTEController,
+            obscureText: true,
+            decoration: InputDecoration(
+              hintText: "Password",
+            ),
+          ),
+          const SizedBox(
+            height: 24,
+          ),
+          Visibility(
+            visible: !_inProgress,
+            replacement: Center(
+              child: CircularProgressIndicator(),
+            ),
+            child: ElevatedButton(
+              onPressed: _onTabNextButton,
+              child: Icon(
+                Icons.arrow_circle_right_outlined,
+                size: 30,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -123,12 +160,34 @@ class _SingInScreenState extends State<SingInScreen> {
   }
 
   void _onTabNextButton() {
-    Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(
-          builder: (context) => MainBottomNavScreen(),
-        ),
-        (route) => false);
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+    _SignIn();
+  }
+
+  Future<void> _SignIn() async {
+    _inProgress = true;
+    setState(() {});
+    Map<String, dynamic> _requestBody = {
+      "email":_emailTEController.text.trim(),
+      "password":_passwordTEController.text
+    };
+    final NetworkResponse response =
+        await NetworkCaller.postRequest(url: Urls.login, body: _requestBody);
+    _inProgress = false;
+    setState(() {});
+    if (response.isSuccess) {
+      await AuthController.saveAccessToken('token');
+      Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MainBottomNavScreen(),
+          ),
+          (value) => false);
+    } else {
+      ShowSnackBarMassage(context, response.errorMassage, true);
+    }
   }
 
   void _onTapSignUp() {

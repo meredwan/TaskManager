@@ -11,9 +11,16 @@ class NetworkCaller {
       Uri uri = Uri.parse(url);
       debugPrint(url);
       final Response response = await get(uri);
-      PrintResponse(response, url);
+      printResponse(url, response);
       if (response.statusCode == 200) {
         final decodeData = jsonDecode(response.body);
+        if (decodeData['status'] == 'fail') {
+          return NetworkResponse(
+            isSuccess: false,
+            statusCode: response.statusCode,
+            errorMassage: decodeData['data'],
+          );
+        }
         return NetworkResponse(
             isSuccess: true,
             statusCode: response.statusCode,
@@ -30,8 +37,8 @@ class NetworkCaller {
     }
   }
 
-  Future<NetworkResponse> postRequest(
-      String url, Map<String, dynamic>? body) async {
+  static Future<NetworkResponse> postRequest(
+      {required String url, Map<String, dynamic>? body}) async {
     try {
       Uri uri = Uri.parse(url);
       debugPrint(url);
@@ -40,13 +47,23 @@ class NetworkCaller {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(body),
       );
-      PrintResponse(response, url);
+      printResponse(url, response);
       if (response.statusCode == 200) {
         final decodeData = jsonDecode(response.body);
-        return NetworkResponse(
-            isSuccess: true,
+
+        if (decodeData['status'] == 'fail') {
+          return NetworkResponse(
+            isSuccess: false,
             statusCode: response.statusCode,
-            responseData: decodeData);
+            errorMassage: decodeData['data'],
+          );
+        }
+
+        return NetworkResponse(
+          isSuccess: true,
+          statusCode: response.statusCode,
+          responseData: decodeData,
+        );
       } else {
         return NetworkResponse(
           isSuccess: false,
@@ -55,11 +72,14 @@ class NetworkCaller {
       }
     } catch (e) {
       return NetworkResponse(
-          isSuccess: true, statusCode: -1, errorMassage: e.toString());
+        isSuccess: false,
+        statusCode: -1,
+        errorMassage: e.toString(),
+      );
     }
   }
 
-  static void PrintResponse(Response response, url) {
+  static void printResponse(String url, Response response) {
     debugPrint(
         'URL: $url, StatusCode: ${response.statusCode}, Body: ${response.body}');
   }
