@@ -178,7 +178,7 @@ class _SingInScreenState extends State<SingInScreen> {
     _inProgress = false;
     setState(() {});
     if (response.isSuccess) {
-      await AuthController.saveAccessToken('token');
+      await AuthController.saveAccessToken(response.responseData['token']);
       Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(

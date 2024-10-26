@@ -13,7 +13,7 @@ class _ProgressTaskScreenState extends State<ProgressTaskScreen> {
   Widget build(BuildContext context) {
     return ListView.separated(
         itemBuilder: (context, index) {
-          return TaskCard();
+          // return TaskCard();
         },
         separatorBuilder: (context, index) {
           return const SizedBox(

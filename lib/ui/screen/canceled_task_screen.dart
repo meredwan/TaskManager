@@ -13,7 +13,7 @@ class _CanceledTaskScreenState extends State<CanceledTaskScreen> {
   Widget build(BuildContext context) {
     return  ListView.separated(
         itemBuilder: (context, index) {
-          return TaskCard();
+          // return TaskCard();
         },
         separatorBuilder: (context, index) {
           return const SizedBox(
