@@ -36,26 +36,30 @@ class TMAppBar extends StatelessWidget implements PreferredSizeWidget {
               backgroundColor: Colors.white,
               radius: 20,
             ),
+            SizedBox(width: 20,),
             Expanded(
-              child: ListTile(
-                title: Text(
-                  "Redwan Islam",
-                  style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w400),
-                ),
-                subtitle: Text(
-                  "me.redwanislam@gmail.com",
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.white,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AuthController.userData?.fullName ?? '',
+                    style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w400),
                   ),
-                ),
+                  Text(
+                    AuthController.userData?.email ?? '',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
             ),
             IconButton(
-                onPressed: () async{
+                onPressed: () async {
                   await AuthController.clearUserData();
 
                   Navigator.pushAndRemoveUntil(

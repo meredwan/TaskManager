@@ -1,10 +1,15 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:task_manager/data/models/network_response.dart';
+import 'package:task_manager/data/services/network_caller.dart';
 import 'package:task_manager/ui/screen/pin_verifications_screen.dart';
 import 'package:task_manager/ui/screen/sing_in_screen.dart';
 import 'package:task_manager/ui/screen/sing_up_screen.dart';
 import 'package:task_manager/ui/utils/appcolors.dart';
+import 'package:task_manager/ui/utils/urls.dart';
 import 'package:task_manager/ui/widgets/screen_background.dart';
+import 'package:task_manager/ui/widgets/snackbar_massage.dart';
 
 class ForgotPasswordEmailScreen extends StatefulWidget {
   const ForgotPasswordEmailScreen({super.key});
@@ -15,6 +20,9 @@ class ForgotPasswordEmailScreen extends StatefulWidget {
 }
 
 class _ForgotPasswordEmailScreenState extends State<ForgotPasswordEmailScreen> {
+  bool _forgetPasswordInProgress = false;
+  final TextEditingController _emailTEController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
@@ -67,17 +75,37 @@ class _ForgotPasswordEmailScreenState extends State<ForgotPasswordEmailScreen> {
     return Column(
       children: [
         TextFormField(
+          controller: _emailTEController,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          validator: (String? value) {
+            if (value?.isEmpty ?? true) {
+              return "Enter a Valid Email";
+            }
+            if (!value!.contains('@')) {
+              return 'Enter Valid Email"@"';
+            }
+            if (!value.contains(".com")) {
+              return "Enter Valid Email'.com'";
+            }
+            return null;
+          },
           keyboardType: TextInputType.emailAddress,
           decoration: InputDecoration(hintText: "Email"),
         ),
         const SizedBox(
           height: 24,
         ),
-        ElevatedButton(
-          onPressed: _onTabNextButton,
-          child: Icon(
-            Icons.arrow_circle_right_outlined,
-            size: 30,
+        Visibility(
+          visible: !_forgetPasswordInProgress,
+          replacement: Center(
+            child: CircularProgressIndicator(),
+          ),
+          child: ElevatedButton(
+            onPressed: _onTabNextButton,
+            child: Icon(
+              Icons.arrow_circle_right_outlined,
+              size: 30,
+            ),
           ),
         ),
       ],
@@ -104,12 +132,32 @@ class _ForgotPasswordEmailScreenState extends State<ForgotPasswordEmailScreen> {
   }
 
   void _onTabNextButton() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => PinVerificationScreen(),
-      ),
+    if (_emailTEController.text != '') {
+      _onTabOTPScreen();
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PinVerificationScreen(
+            verifyEmail: _emailTEController.text.trim(),
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onTabOTPScreen() async {
+    _forgetPasswordInProgress = true;
+    setState(() {});
+    final NetworkResponse response = await NetworkCaller.getRequest(
+      Urls.RecoverVerifyEmail(_emailTEController.text),
     );
+    _forgetPasswordInProgress = false;
+    setState(() {});
+    if (response.isSuccess) {
+      ShowSnackBarMassage(context, response.responseData['data']);
+    } else {
+      ShowSnackBarMassage(context, response.errorMassage);
+    }
   }
 
   void _onTapSignIn() {

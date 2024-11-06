@@ -1,19 +1,38 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:task_manager/data/models/network_response.dart';
+import 'package:task_manager/data/services/network_caller.dart';
 import 'package:task_manager/ui/screen/pin_verifications_screen.dart';
 import 'package:task_manager/ui/screen/sing_in_screen.dart';
 import 'package:task_manager/ui/screen/sing_up_screen.dart';
 import 'package:task_manager/ui/utils/appcolors.dart';
+import 'package:task_manager/ui/utils/urls.dart';
 import 'package:task_manager/ui/widgets/screen_background.dart';
+import 'package:task_manager/ui/widgets/snackbar_massage.dart';
 
 class SetPasswordScreen extends StatefulWidget {
-  const SetPasswordScreen({super.key});
+  SetPasswordScreen({
+    super.key,
+    required this.email,
+    required this.otp,
+  });
+
+  final email;
+  final otp;
 
   @override
   State<SetPasswordScreen> createState() => _SetPasswordScreenState();
 }
 
 class _SetPasswordScreenState extends State<SetPasswordScreen> {
+  final TextEditingController _newPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+  final GlobalKey<FormState> _globalKey = GlobalKey<FormState>();
+
+  bool obscureText = true;
+  bool _setPasswordInProgress = false;
+
   @override
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
@@ -63,29 +82,75 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
   }
 
   Widget _buildEmailFrom() {
-    return Column(
-      children: [
-        TextFormField(
-          keyboardType: TextInputType.emailAddress,
-          decoration: InputDecoration(hintText: "Password"),
-        ),
-        const SizedBox(
-          height: 12,
-        ),
-        TextFormField(
-          keyboardType: TextInputType.emailAddress,
-          decoration: InputDecoration(hintText: "Confirm Password"),
-        ),
-        const SizedBox(
-          height: 24,
-        ),
-        ElevatedButton(
-            onPressed: _onTabNextButton,
+    return Form(
+      key: _globalKey,
+      child: Column(
+        children: [
+          TextFormField(
+            validator: (String? value) {
+              if (value?.isNotEmpty == true) {
+                return "Enter Valid Password";
+              }
+              if (value!.length > 6) {
+                return 'Enter Valid Password Must be 6 Character';
+              } else {
+                return null;
+              }
+            },
+            controller: _newPasswordController,
+            obscureText: true,
+            keyboardType: TextInputType.emailAddress,
+            decoration: InputDecoration(
+              suffixIcon: IconButton(
+                  onPressed: () {
+                    obscureText = !obscureText;
+                    setState(() {});
+                  },
+                  icon: obscureText
+                      ? Icon(Icons.visibility_off)
+                      : Icon(Icons.visibility)),
+              hintText: "Password",
+            ),
+          ),
+          const SizedBox(
+            height: 12,
+          ),
+          TextFormField(
+            controller: _confirmPasswordController,
+            obscureText: true,
+            keyboardType: TextInputType.emailAddress,
+            validator: (String? value) {
+              if (value?.isNotEmpty == true) {
+                return "Confirm Your Password";
+              }
+              if (value!.length > 6) {
+                return "Valid Password Must be 6 Character";
+              }
+              return null;
+            },
+            decoration: InputDecoration(
+                suffixIcon: IconButton(
+                    onPressed: () {
+                      obscureText = !obscureText;
+                      setState(() {});
+                    },
+                    icon: obscureText
+                        ? Icon(Icons.visibility_off)
+                        : Icon(Icons.visibility)),
+                hintText: "Confirm Password"),
+          ),
+          const SizedBox(
+            height: 24,
+          ),
+          ElevatedButton(
+            onPressed: _onTabConfirmButton,
             child: Text(
               "Confirm",
               style: TextStyle(fontSize: 18),
-            )),
-      ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -108,13 +173,36 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
     );
   }
 
-  void _onTabNextButton() {
+  void _onTabConfirmButton() {
+    if (_globalKey.currentState!.validate()) {
+      return;
+    }
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => SingInScreen(),
       ),
     );
+  }
+
+  Future<void> _confirmPassword() async {
+    _setPasswordInProgress = true;
+    setState(() {});
+    Map<String, dynamic> _requestBody = {
+      "email": widget.email,
+      "OTP": widget.otp,
+      "password": _confirmPasswordController.text
+    };
+
+    final NetworkResponse response = await NetworkCaller.postRequest(
+        url: Urls.registration, body: _requestBody);
+    _setPasswordInProgress = false;
+
+    if (response.isSuccess) {
+      ShowSnackBarMassage(context, response.responseData['data']);
+    } else {
+      ShowSnackBarMassage(context, response.errorMassage);
+    }
   }
 
   void _onTapSignIn() {

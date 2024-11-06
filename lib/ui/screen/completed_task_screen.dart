@@ -16,7 +16,8 @@ class CompletedTaskScreen extends StatefulWidget {
 
 class _CompletedTaskScreenState extends State<CompletedTaskScreen> {
   bool _getCompletedTaskInProgress = false;
-  List<TaskModel> _completedNewTask = [];
+   List<TaskModel> _completedNewTask = [];
+
 
   @override
   void initState() {
@@ -38,7 +39,7 @@ class _CompletedTaskScreenState extends State<CompletedTaskScreen> {
         },
         child: ListView.separated(
             itemBuilder: (context, index) {
-              return TaskCard(taskModel: _completedNewTask[index]);
+              return TaskCard(taskModel: _completedNewTask[index], onRefresh: _getCompletedTaskScreen,);
             },
             separatorBuilder: (context, index) {
               return const SizedBox(
@@ -63,5 +64,7 @@ class _CompletedTaskScreenState extends State<CompletedTaskScreen> {
     } else {
       ShowSnackBarMassage(context, response.errorMassage);
     }
+    _getCompletedTaskInProgress = false;
+    setState(() {});
   }
 }
