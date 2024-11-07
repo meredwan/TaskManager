@@ -177,6 +177,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
     if (_globalKey.currentState!.validate()) {
       return;
     }
+    _confirmPassword();
     Navigator.push(
       context,
       MaterialPageRoute(
