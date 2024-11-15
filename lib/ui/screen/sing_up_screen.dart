@@ -1,14 +1,18 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:task_manager/controller/sign_up_controller.dart';
 import 'package:task_manager/data/models/network_response.dart';
 import 'package:task_manager/data/services/network_caller.dart';
+import 'package:task_manager/ui/screen/sing_in_screen.dart';
 import 'package:task_manager/ui/utils/appcolors.dart';
 import 'package:task_manager/ui/utils/urls.dart';
 import 'package:task_manager/ui/widgets/screen_background.dart';
 import 'package:task_manager/ui/widgets/snackbar_massage.dart';
 
 class SingUpScreen extends StatefulWidget {
+  static const String name = "/SingUpScreen";
+
   const SingUpScreen({super.key});
 
   @override
@@ -23,7 +27,7 @@ class _SingUpScreenState extends State<SingUpScreen> {
   final TextEditingController _lastNameTEControllar = TextEditingController();
   final TextEditingController _mobileTEControllar = TextEditingController();
   final TextEditingController _passwordlTEControllar = TextEditingController();
-  bool _inProgress = false;
+  SignUpController signUpController = Get.find<SignUpController>();
 
   @override
   Widget build(BuildContext context) {
@@ -89,6 +93,7 @@ class _SingUpScreenState extends State<SingUpScreen> {
               if (value?.isEmpty ?? true) {
                 return 'Please Enter First Name';
               }
+              return null;
             },
             controller: _fristNameTEControllar,
             decoration: InputDecoration(
@@ -104,6 +109,7 @@ class _SingUpScreenState extends State<SingUpScreen> {
               if (value?.isEmpty ?? true) {
                 return 'Please Enter Last Name';
               }
+              return null;
             },
             controller: _lastNameTEControllar,
             decoration: InputDecoration(
@@ -119,6 +125,7 @@ class _SingUpScreenState extends State<SingUpScreen> {
               if (value?.isEmpty ?? true) {
                 return 'Please Enter Your Mobile Number';
               }
+              return null;
             },
             controller: _mobileTEControllar,
             keyboardType: TextInputType.phone,
@@ -145,19 +152,21 @@ class _SingUpScreenState extends State<SingUpScreen> {
           const SizedBox(
             height: 24,
           ),
-          Visibility(
-            visible: !_inProgress,
-            replacement: Center(
-              child: CircularProgressIndicator(),
-            ),
-            child: ElevatedButton(
-              onPressed: _onTabNextButton,
-              child: Icon(
-                Icons.arrow_circle_right_outlined,
-                size: 30,
+          GetBuilder<SignUpController>(builder: (controller) {
+            return Visibility(
+              visible: !signUpController.inProgress,
+              replacement: Center(
+                child: CircularProgressIndicator(),
               ),
-            ),
-          ),
+              child: ElevatedButton(
+                onPressed: _onTabNextButton,
+                child: Icon(
+                  Icons.arrow_circle_right_outlined,
+                  size: 30,
+                ),
+              ),
+            );
+          }),
         ],
       ),
     );
@@ -174,9 +183,13 @@ class _SingUpScreenState extends State<SingUpScreen> {
             letterSpacing: 0.5),
         children: [
           TextSpan(
-              text: "Sign In",
-              style: TextStyle(color: AppColor.ThemeColor),
-              recognizer: TapGestureRecognizer()..onTap = _onTapSignIn),
+            text: "Sign In",
+            style: TextStyle(color: AppColor.ThemeColor),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () {
+                Get.offNamed(SingInScreen.name);
+              },
+          ),
         ],
       ),
     );
@@ -189,41 +202,34 @@ class _SingUpScreenState extends State<SingUpScreen> {
   }
 
   Future<void> _signUp() async {
-    _inProgress = true;
-    setState(() {});
-    Map<String, dynamic> requestBody = {
-      "email": _emailTEControllar.text.trim(),
-      "firstName": _fristNameTEControllar.text.trim(),
-      "lastName": _lastNameTEControllar.text.trim(),
-      "mobile": _mobileTEControllar.text.trim(),
-      "password": _passwordlTEControllar.text,
-      "Photo": ""
-    };
-    NetworkResponse response = await NetworkCaller.postRequest(
-        url: Urls.registration, body: requestBody);
-    _inProgress = false;
-    setState(() {});
+    final bool result = await signUpController.signUp(
+      _emailTEControllar.text.trim(),
+      _fristNameTEControllar.text.trim(),
+      _lastNameTEControllar.text.trim(),
+      _mobileTEControllar.text.trim(),
+      _passwordlTEControllar.text,
+    );
 
-    if (response.isSuccess) {
+    if (result == false) {
       _clearTextField();
-      ShowSnackBarMassage(context, "New User Created");
+      Get.snackbar("New User", "New User Created Successfully");
     } else {
-      print(response.statusCode);
-      ShowSnackBarMassage(context,"Something Wrong", true);
+      ShowSnackBarMassage(context, "Something Wrong", true);
+      Get.snackbar(
+        "Error",
+        signUpController.errorMassage!,
+      );
     }
   }
 
-  void _onTapSignIn() {
-    Navigator.pop(context);
-  }
-
-  void _clearTextField(){
+  void _clearTextField() {
     _emailTEControllar.clear();
     _fristNameTEControllar.clear();
     _lastNameTEControllar.clear();
     _mobileTEControllar.clear();
     _passwordlTEControllar.clear();
   }
+
   @override
   void dispose() {
     _emailTEControllar.dispose();

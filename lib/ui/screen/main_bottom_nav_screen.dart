@@ -4,11 +4,11 @@ import 'package:task_manager/ui/screen/canceled_task_screen.dart';
 import 'package:task_manager/ui/screen/completed_task_screen.dart';
 import 'package:task_manager/ui/screen/new_task_screen.dart';
 import 'package:task_manager/ui/screen/progress_task_screen.dart';
-import 'package:task_manager/ui/utils/appcolors.dart';
 import 'package:task_manager/ui/widgets/tmappbar.dart';
 
 class MainBottomNavScreen extends StatefulWidget {
   const MainBottomNavScreen({super.key});
+  static const String name= "/MainBottomNavScreen";
 
   @override
   State<MainBottomNavScreen> createState() => _MainBottomNavScreenState();

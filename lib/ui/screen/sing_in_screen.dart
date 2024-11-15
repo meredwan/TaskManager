@@ -1,19 +1,17 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:task_manager/data/auth/auth_controller.dart';
-import 'package:task_manager/data/models/login_model.dart';
-import 'package:task_manager/data/models/network_response.dart';
-import 'package:task_manager/data/models/user_data_model.dart';
-import 'package:task_manager/data/services/network_caller.dart';
+import 'package:get/get.dart';
+import 'package:task_manager/controller/sign_in_controller.dart';
 import 'package:task_manager/ui/screen/forgot_password_email.dart';
 import 'package:task_manager/ui/screen/main_bottom_nav_screen.dart';
 import 'package:task_manager/ui/screen/sing_up_screen.dart';
 import 'package:task_manager/ui/utils/appcolors.dart';
-import 'package:task_manager/ui/utils/urls.dart';
 import 'package:task_manager/ui/widgets/screen_background.dart';
 import 'package:task_manager/ui/widgets/snackbar_massage.dart';
 
 class SingInScreen extends StatefulWidget {
+  static const String name = "/SignInScreen";
+
   const SingInScreen({super.key});
 
   @override
@@ -24,7 +22,7 @@ class _SingInScreenState extends State<SingInScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _emailTEController = TextEditingController();
   final TextEditingController _passwordTEController = TextEditingController();
-  bool _inProgress = false;
+  final SignInController signInController = Get.find<SignInController>();
 
   @override
   Widget build(BuildContext context) {
@@ -105,6 +103,7 @@ class _SingInScreenState extends State<SingInScreen> {
               if (Value!.length <= 6) {
                 return "Enter a Password more than 6 Character";
               }
+              return null;
             },
             controller: _passwordTEController,
             obscureText: true,
@@ -115,19 +114,21 @@ class _SingInScreenState extends State<SingInScreen> {
           const SizedBox(
             height: 24,
           ),
-          Visibility(
-            visible: !_inProgress,
-            replacement: Center(
-              child: CircularProgressIndicator(),
-            ),
-            child: ElevatedButton(
-              onPressed: _onTabNextButton,
-              child: Icon(
-                Icons.arrow_circle_right_outlined,
-                size: 30,
+          GetBuilder<SignInController>(builder: (controller) {
+            return Visibility(
+              visible: !controller.inProgress,
+              replacement: Center(
+                child: CircularProgressIndicator(),
               ),
-            ),
-          ),
+              child: ElevatedButton(
+                onPressed: _onTabNextButton,
+                child: Icon(
+                  Icons.arrow_circle_right_outlined,
+                  size: 30,
+                ),
+              ),
+            );
+          }),
         ],
       ),
     );
@@ -146,19 +147,17 @@ class _SingInScreenState extends State<SingInScreen> {
           TextSpan(
               text: "Sign Up",
               style: TextStyle(color: AppColor.ThemeColor),
-              recognizer: TapGestureRecognizer()..onTap = _onTapSignUp),
+              recognizer: TapGestureRecognizer()
+                ..onTap = () {
+                  Get.offAllNamed(SingUpScreen.name);
+                }),
         ],
       ),
     );
   }
 
   void _onTabForgotPasswordButton() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ForgotPasswordEmailScreen(),
-      ),
-    );
+    Get.toNamed(ForgotPasswordEmailScreen.name);
   }
 
   void _onTabNextButton() {
@@ -169,37 +168,12 @@ class _SingInScreenState extends State<SingInScreen> {
   }
 
   Future<void> _SignIn() async {
-    _inProgress = true;
-    setState(() {});
-    Map<String, dynamic> _requestBody = {
-      "email":_emailTEController.text.trim(),
-      "password":_passwordTEController.text
-    };
-    final NetworkResponse response =
-        await NetworkCaller.postRequest(url: Urls.login, body: _requestBody);
-    _inProgress = false;
-    setState(() {});
-    if (response.isSuccess) {
-      LoginModel loginModel =LoginModel.fromJson(response.responseData);
-      await AuthController.saveAccessToken(loginModel.token!);
-      await AuthController.saveUserData(loginModel.data!);
-      Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (context) => MainBottomNavScreen(),
-          ),
-          (value) => false);
+    final bool result = await signInController.SignIn(
+        _emailTEController.text.trim(), _passwordTEController.text.trim());
+    if (result) {
+      Get.toNamed(MainBottomNavScreen.name);
     } else {
-      ShowSnackBarMassage(context, response.errorMassage, true);
+      ShowSnackBarMassage(context, signInController.errorMassage!, true);
     }
-  }
-
-  void _onTapSignUp() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SingUpScreen(),
-      ),
-    );
   }
 }

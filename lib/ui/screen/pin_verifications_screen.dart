@@ -1,17 +1,18 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:task_manager/data/models/network_response.dart';
-import 'package:task_manager/data/services/network_caller.dart';
+import 'package:get/get.dart';
+import 'package:task_manager/controller/pin_verifications_screen_controller.dart';
 import 'package:task_manager/ui/screen/set_password_screen.dart';
 import 'package:task_manager/ui/screen/sing_in_screen.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:task_manager/ui/utils/appcolors.dart';
-import 'package:task_manager/ui/utils/urls.dart';
 import 'package:task_manager/ui/widgets/screen_background.dart';
 import 'package:task_manager/ui/widgets/snackbar_massage.dart';
 
 class PinVerificationScreen extends StatefulWidget {
+  static const String name = "/PinVerificationScreen";
+
   PinVerificationScreen({super.key, required this.verifyEmail});
 
   final String verifyEmail;
@@ -22,7 +23,8 @@ class PinVerificationScreen extends StatefulWidget {
 
 class _PinVerificationScreenState extends State<PinVerificationScreen> {
   final TextEditingController _otpController = TextEditingController();
-  bool _verifyOTPInProgress = false;
+  OTPPinVerificationScreenController _otpPinVerificationScreenController =
+      Get.find<OTPPinVerificationScreenController>();
 
   @override
   Widget build(BuildContext context) {
@@ -98,16 +100,18 @@ class _PinVerificationScreenState extends State<PinVerificationScreen> {
         const SizedBox(
           height: 20,
         ),
-        Visibility(
-          visible: !_verifyOTPInProgress,
-          replacement: Center(
-            child: CircularProgressIndicator(),
-          ),
-          child: ElevatedButton(
-              onPressed: _onTabSetPasswordScreen,
-              child: Text("Verify",
-                  style: TextStyle(fontSize: 18, color: Colors.white))),
-        ),
+        GetBuilder(builder: (context) {
+          return Visibility(
+            visible: !_otpPinVerificationScreenController.inProgress,
+            replacement: Center(
+              child: CircularProgressIndicator(),
+            ),
+            child: ElevatedButton(
+                onPressed: _onTabSetPasswordScreen,
+                child: Text("Verify",
+                    style: TextStyle(fontSize: 18, color: Colors.white))),
+          );
+        }),
       ],
     );
   }
@@ -137,23 +141,19 @@ class _PinVerificationScreenState extends State<PinVerificationScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => SetPasswordScreen(email: widget.verifyEmail, otp: _otpController.text),
+          builder: (context) => SetPasswordScreen(
+              email: widget.verifyEmail, otp: _otpController.text),
         ),
       );
     }
   }
 
   Future<void> _recoveredVerifyScreen() async {
-    _verifyOTPInProgress = true;
-    setState(() {});
-    NetworkResponse response = await NetworkCaller.getRequest(
-        Urls.RecoverVerifyOtp(widget.verifyEmail, _otpController.text));
-    _verifyOTPInProgress = false;
-    setState(() {});
-    if (response.isSuccess) {
-      ShowSnackBarMassage(context, response.responseData['data']);
-    } else {
-      ShowSnackBarMassage(context, response.errorMassage);
+    final bool result = await _otpPinVerificationScreenController
+        .recoveredVerifyScreen(widget.verifyEmail, _otpController.text);
+    if (result == false) {
+      ShowSnackBarMassage(
+          context, _otpPinVerificationScreenController.errorMassage!);
     }
   }
 

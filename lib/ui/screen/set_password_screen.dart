@@ -2,15 +2,14 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:task_manager/data/models/network_response.dart';
 import 'package:task_manager/data/services/network_caller.dart';
-import 'package:task_manager/ui/screen/pin_verifications_screen.dart';
 import 'package:task_manager/ui/screen/sing_in_screen.dart';
-import 'package:task_manager/ui/screen/sing_up_screen.dart';
 import 'package:task_manager/ui/utils/appcolors.dart';
 import 'package:task_manager/ui/utils/urls.dart';
 import 'package:task_manager/ui/widgets/screen_background.dart';
 import 'package:task_manager/ui/widgets/snackbar_massage.dart';
 
 class SetPasswordScreen extends StatefulWidget {
+  static const String name= "/SetPasswordScreen";
   SetPasswordScreen({
     super.key,
     required this.email,

@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:task_manager/app.dart';
-import 'package:task_manager/data/models/network_response.dart';
-import 'package:task_manager/data/services/network_caller.dart';
-import 'package:task_manager/ui/utils/urls.dart';
+import 'package:get/get.dart';
+import 'package:task_manager/controller/add_new_task_controller.dart';
+import 'package:task_manager/ui/screen/main_bottom_nav_screen.dart';
 import 'package:task_manager/ui/widgets/screen_background.dart';
 import 'package:task_manager/ui/widgets/snackbar_massage.dart';
 import 'package:task_manager/ui/widgets/tmappbar.dart';
 
 class AddNewTaskScreen extends StatefulWidget {
+  static const String name = "/AddNewTaskScreen";
+
   const AddNewTaskScreen({super.key});
 
   @override
@@ -19,19 +20,18 @@ class _AddNewTaskScreenState extends State<AddNewTaskScreen> {
   final TextEditingController _descriptionTEController =
       TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  bool _addNewTaskInProgress = false;
-  bool _shouldRefreshNewTaskAdded = false;
+  AddNewTaskController addNewTaskController = Get.find<AddNewTaskController>();
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-        onPopInvoked: (didPop)async {
-          if(didPop){
-            return;
-          }
-          Navigator.pop(context, _shouldRefreshNewTaskAdded);
-        },
+      onPopInvoked: (didPop) async {
+        if (didPop) {
+          return;
+        }
+        Navigator.pop(context, addNewTaskController.shouldRefresh);
+      },
       child: Scaffold(
         appBar: TMAppBar(),
         body: SingleChildScrollView(
@@ -48,7 +48,8 @@ class _AddNewTaskScreenState extends State<AddNewTaskScreen> {
                     ),
                     Text(
                       "Add New Task",
-                      style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(
                       height: 26,
@@ -82,15 +83,17 @@ class _AddNewTaskScreenState extends State<AddNewTaskScreen> {
                     const SizedBox(
                       height: 24,
                     ),
-                    Visibility(
-                      visible: !_addNewTaskInProgress,
-                      replacement: Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                      child: ElevatedButton(
-                          onPressed: _onTabSubmitButton,
-                          child: Icon(Icons.arrow_circle_right_outlined)),
-                    )
+                    GetBuilder<AddNewTaskController>(builder: (controller) {
+                      return Visibility(
+                        visible: !addNewTaskController.inProgress,
+                        replacement: Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                        child: ElevatedButton(
+                            onPressed: _onTabSubmitButton,
+                            child: Icon(Icons.arrow_circle_right_outlined)),
+                      );
+                    })
                   ],
                 ),
               ),
@@ -108,28 +111,18 @@ class _AddNewTaskScreenState extends State<AddNewTaskScreen> {
   }
 
   Future<void> _addNewTask() async {
-    _addNewTaskInProgress = true;
-    setState(() {});
-    Map<String, dynamic> requestBody = {
-      "title": _titleTEController.text.trim(),
-      "description": _descriptionTEController.text.trim(),
-      "status": "New"
-    };
-    final NetworkResponse response = await NetworkCaller.postRequest(
-        url: Urls.createTask, body: requestBody);
-    _addNewTaskInProgress = false;
-    setState(() {
+    final bool result = await addNewTaskController.addNewTask(
+        _titleTEController.text.trim(),
+        _descriptionTEController.text.trim(),
+        "New");
 
-    });
-    if (response.isSuccess) {
-      _shouldRefreshNewTaskAdded=true;
+    if (result) {
       _ClearTextField();
-      ShowSnackBarMassage(context, "Created New Task");
+      Get.snackbar("Task Massage", "Created New Task",
+          snackPosition: SnackPosition.BOTTOM);
+    } else {
+      ShowSnackBarMassage(context, addNewTaskController.errorMassage!, true);
     }
-    else{
-      ShowSnackBarMassage(context, response.errorMassage, true);
-    }
-
   }
 
   void _ClearTextField() {
